@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html data-ng-app="players" data-ng-controller="start"> <!-- AngularJS modul und controller registrieren -->
+	<head>
+		<title>Spielerverwaltung</title>
+		
+		<link rel="stylesheet" href="css/bootstrap.min.css" />
+		
+		<script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
+		<script type="text/javascript" src="js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="js/angular.min.js"></script>
+		<script type="text/javascript" src="js/app.custom.js"></script> <!-- Eigenes Script -->
+	</head>
+	<body>
+	
+		<!-- Header -->
+		<div class="jumbotron">
+			<div class="container">
+				<div class="row">
+					<div class="col-sm-12"><h3>Spielerverwaltung</h3></div>
+				</div>
+				<div class="row">
+					<div class="col-sm-1">&#160;</div> <!-- Platzhalter -->
+					<div class="col-sm-11" id="playerMessage"></div> <!-- Wird befüllt mit WebSocket Nachrichten -->
+				</div>
+			</div>
+		</div>
+		
+		<!-- Spieler-Übersicht, wird ausgeblendet, wenn editMode eingeschaltet ist -->
+		<div class="container" data-ng-hide="isEditMode"> 
+			<div class="row">
+				<table class="table table-hover table-striped">
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>Nickname</th>
+						</tr>
+					</thead>
+					<tbody>
+						<!-- Angular: Tabellenzeile wird für jeden vorkommenden player wiederholt
+							 bei Klick auf die Zeile wird die Methode showDetail() im controller aufgerufen -->
+						<tr data-ng-repeat="player in players" data-ng-click="showDetails(player)">
+							<td>{{ player.id }}</td>
+							<td>{{ player.nickname }}</td>
+						</tr>
+					</tbody>
+				</table>				
+			</div>
+			<div class="row">
+				<div class="col-sm-12">
+					<a role="button" class="btn btn-success" 
+						data-ng-click="addNewPlayer()" data-ng-disabled="isLoading">+</a>
+						
+					<a role="button" class="btn btn-default" 
+						data-ng-click="loadPlayers()" data-ng-disabled="isLoading">Neu laden</a>
+				</div>
+			</div>
+		</div>
+		
+		<!-- Editier-Bereich, wird eingeblendet, wenn editMode eingeschaltet ist -->
+		<div class="container" data-ng-hide="!isEditMode">
+			<form role="form" class="form-group form-group-sm">
+				<div class="row">
+					<div class="col-sm-2"><label for="nickname">Nickname</label></div>
+					<div class="col-sm-10"><input class="form-control" type="text" data-ng-model="currentPlayer.nickname" name="nickname" /></div>
+				</div>
+				
+				<!-- Liste der Email-Adressen -->
+				<div class="row">
+					<table class="table table-hover table-striped">
+						<thead>
+							<th>Email</th>
+							<th>Aktion</th>
+						</thead>
+						<tr data-ng-hide="currentPlayer.emailAddresses.length > 0">
+							<td colspan="6">Keine Email-Adresse definiert</td>
+						</tr>
+						<tr data-ng-repeat="emailAddress in currentPlayer.emailAddresses">
+							<td><span data-ng-hide="emailAddress.isEditMode">{{ emailAddress.emailAddress }}</span><input class="form-control" type="text" data-ng-model="emailAddress.emailAddress" data-ng-hide="!emailAddress.isEditMode" /></td>
+							<td class="col-md-2">
+								<button class="btn btn-default" data-ng-click="switchToEditMode(emailAddress, $index)" data-ng-hide="emailAddress.isEditMode">Bearbeiten</button>
+								<button class="btn btn-danger" data-ng-hide="emailAddress.isEditMode" data-ng-click="deleteEmailAddress($index)">L&ouml;schen</button>
+								<button class="btn btn-success" data-ng-hide="!emailAddress.isEditMode" data-ng-click="emailAddress.isEditMode = false">Ok</button>
+								<button class="btn btn-default" data-ng-hide="!emailAddress.isEditMode" data-ng-click="restoreEmailAddress($index)">Abbruch</button>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="6"><button class="btn btn-success" data-ng-click="addEmailAddress()">Neu</button></td>
+						</tr>
+					</table>
+				</div>
+				
+				<!-- Formular versenden -->
+				<div class="row">&#160;</div>
+				<div class="row">
+					<div class="col-sm-12">
+						<button class="btn btn-success" data-ng-click="storePlayer()">Speichern</button>
+						<button class="btn btn-danger" data-ng-hide="!currentPlayer.id || currentPlayer.id == 0" data-ng-click="deletePlayer()">L&ouml;schen</button>
+						<button class="btn btn-default" data-ng-click="restorePlayer()">Abbrechen</button>
+				</div>
+				</div>
+			</form>
+		</div>
+	
+	</body>
+</html>
